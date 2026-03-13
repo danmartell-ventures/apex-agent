@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -137,11 +139,42 @@ func (d *Docker) IsRunning(ctx context.Context, name string) (bool, error) {
 	return strings.TrimSpace(out) == "true", nil
 }
 
+// detectDockerHost finds the Docker socket, checking common locations.
+func detectDockerHost() string {
+	// Already set in environment
+	if h := os.Getenv("DOCKER_HOST"); h != "" {
+		return h
+	}
+
+	// Default Docker Desktop socket
+	if _, err := os.Stat("/var/run/docker.sock"); err == nil {
+		return ""
+	}
+
+	// Colima
+	home, _ := os.UserHomeDir()
+	colima := filepath.Join(home, ".colima", "default", "docker.sock")
+	if _, err := os.Stat(colima); err == nil {
+		return "unix://" + colima
+	}
+
+	// OrbStack
+	orbstack := filepath.Join(home, ".orbstack", "run", "docker.sock")
+	if _, err := os.Stat(orbstack); err == nil {
+		return "unix://" + orbstack
+	}
+
+	return ""
+}
+
 func (d *Docker) run(ctx context.Context, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "docker", args...)
+	if host := detectDockerHost(); host != "" {
+		cmd.Env = append(os.Environ(), "DOCKER_HOST="+host)
+	}
 	out, err := cmd.CombinedOutput()
 	return string(out), err
 }
