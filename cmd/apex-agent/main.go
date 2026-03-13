@@ -63,9 +63,21 @@ func runCmd() *cobra.Command {
 				// Config doesn't exist or is invalid — trigger first-run setup
 				if !headless {
 					if setupErr := runFirstRunSetup(); setupErr != nil {
-						// If user cancelled or setup failed, show error and exit
-						platform.ShowErrorDialog("Apex Agent", fmt.Sprintf("Setup failed: %v", setupErr))
-						return setupErr
+						// User cancelled or setup failed — run unconfigured with gray icon.
+						// They can re-register from the menubar later.
+						log, _ := logging.Setup(config.DefaultLogDir(), "info", foreground)
+						log.Warn("no config, running unconfigured", "error", setupErr)
+						a := agent.NewUnconfigured(log)
+
+						sigCh := make(chan os.Signal, 1)
+						signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+						go func() {
+							<-sigCh
+							log.Info("received shutdown signal")
+							a.Stop()
+						}()
+
+						return a.Run()
 					}
 					// Reload config after successful setup
 					cfg, err = config.Load(cfgPath)

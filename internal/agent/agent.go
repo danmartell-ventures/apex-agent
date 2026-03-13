@@ -33,11 +33,46 @@ type Agent struct {
 	power     *platform.PowerMonitor
 	network   *platform.NetworkMonitor
 
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
-	removed sync.Once
-	isRemoved bool
+	cancel        context.CancelFunc
+	wg            sync.WaitGroup
+	removed       sync.Once
+	isRemoved     bool
+	unconfigured  bool
 }
+
+// NewUnconfigured creates a minimal agent with just the menubar (gray icon)
+// and the ability to re-register. Used when no config exists yet.
+func NewUnconfigured(log *slog.Logger) *Agent {
+	a := &Agent{
+		log:          log,
+		unconfigured: true,
+	}
+
+	a.menuApp = menubar.NewApp(a, noUpdates{}, menubar.Actions{
+		Reregister: func() {
+			self, _ := os.Executable()
+			setupCmd := exec.Command(self, "setup")
+			if err := setupCmd.Start(); err != nil {
+				log.Error("failed to launch setup", "error", err)
+				return
+			}
+			setupCmd.Wait()
+			platform.RestartService()
+		},
+		ViewLogs: func() {
+			logPath := config.DefaultLogDir() + "/agent.log"
+			exec.Command("open", "-a", "Console", logPath).Start()
+		},
+		Quit: func() { a.Stop() },
+	}, log)
+
+	return a
+}
+
+// noUpdates is a stub UpdateProvider for unconfigured mode.
+type noUpdates struct{}
+
+func (noUpdates) HasPendingUpdate() (string, bool) { return "", false }
 
 // New creates an Agent from config.
 func New(cfg *config.Config, log *slog.Logger, headless bool) *Agent {
@@ -124,8 +159,23 @@ func (a *Agent) IsRemoved() bool {
 	return a.isRemoved
 }
 
+// IsUnconfigured returns true if the agent has no config (first run, setup cancelled).
+func (a *Agent) IsUnconfigured() bool {
+	return a.unconfigured
+}
+
 // Run starts all subsystems. If not headless, the menubar runs on the main thread.
 func (a *Agent) Run() error {
+	// Unconfigured mode — just show the menubar
+	if a.unconfigured {
+		if a.menuApp != nil {
+			a.menuApp.Run()
+		} else {
+			select {} // headless unconfigured: idle forever
+		}
+		return nil
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancel = cancel
 
@@ -242,9 +292,24 @@ func (a *Agent) handleNetworkEvents(ctx context.Context) error {
 }
 
 // StatusProvider interface for menubar
-func (a *Agent) TunnelState() tunnel.State       { return a.tunnel.State() }
-func (a *Agent) TunnelConnectedAt() time.Time     { return a.tunnel.ConnectedAt() }
-func (a *Agent) Containers() []container.ContainerStatus { return a.monitor.Containers() }
+func (a *Agent) TunnelState() tunnel.State {
+	if a.tunnel == nil {
+		return tunnel.StateDisconnected
+	}
+	return a.tunnel.State()
+}
+func (a *Agent) TunnelConnectedAt() time.Time {
+	if a.tunnel == nil {
+		return time.Time{}
+	}
+	return a.tunnel.ConnectedAt()
+}
+func (a *Agent) Containers() []container.ContainerStatus {
+	if a.monitor == nil {
+		return nil
+	}
+	return a.monitor.Containers()
+}
 
 // Status returns a summary of agent state.
 type Status struct {

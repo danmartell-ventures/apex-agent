@@ -18,6 +18,7 @@ type StatusProvider interface {
 	TunnelConnectedAt() time.Time
 	Containers() []container.ContainerStatus
 	IsRemoved() bool
+	IsUnconfigured() bool
 }
 
 // UpdateProvider supplies update state to the menubar.
@@ -169,7 +170,18 @@ func (a *App) onReady() {
 }
 
 func (a *App) updateMenu(mTunnel, mContainers, mUpdate, mReregister *systray.MenuItem) {
-	// Check for fleet removal first
+	// Unconfigured — no token yet
+	if a.status.IsUnconfigured() {
+		systray.SetIcon(iconGray)
+		systray.SetTooltip("Apex Agent — Not Connected")
+		mTunnel.SetTitle("Not Connected")
+		mContainers.SetTitle("Set up with a token to get started")
+		mReregister.SetTitle("Set Up This Mac...")
+		mReregister.Show()
+		return
+	}
+
+	// Removed from fleet
 	if a.status.IsRemoved() {
 		systray.SetIcon(iconGray)
 		systray.SetTooltip("Apex Agent — Removed from Fleet")

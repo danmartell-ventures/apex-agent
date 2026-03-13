@@ -51,6 +51,11 @@ func DefaultConfigPath() string {
 	return filepath.Join(home, ".apex", "agent.toml")
 }
 
+func DefaultLogDir() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".apex", "logs")
+}
+
 func DefaultForwardsPath() string {
 	home, _ := os.UserHomeDir()
 	return filepath.Join(home, ".apex", "forwards.conf")
