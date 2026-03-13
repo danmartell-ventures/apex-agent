@@ -61,3 +61,11 @@ Releases are distributed as **signed and notarized macOS PKG installers** via Gi
 - **Network events:** Debounced (5s after last event) — macOS fires many events during network changes
 - **Container prefix:** `apex-` by default, configurable in `agent.toml`
 - **Docker runtime:** BYOHs use Colima
+- **The agent does NOT create containers.** It only monitors, recovers, and reports on them. Containers are provisioned from the apexhost management server via SSH to the host.
+
+## Known Issues
+
+- **Homebrew tap push:** GoReleaser fails to push to `danmartell-ventures/homebrew-tap` (403). `continue-on-error: true` on the GoReleaser step so PKG build still runs. Fix by giving `HOMEBREW_TAP_GITHUB_TOKEN` write access to that repo.
+- **Go module rename:** Module was renamed from `github.com/danmartell-ventures/apex-agent` to `github.com/danmartell-ventures/apexagent`. The `.goreleaser.yml` release target must match the repo name.
+- **PKG codesign in CI:** The binary MUST be signed AFTER copying to `pkg-root/` — `cp` strips codesign signatures. The CI workflow mirrors the `make pkg` target exactly for this reason. Do not refactor one without the other.
+- **Installer background image:** Removed. The macOS installer `<background>` element doesn't render well. Don't add it back.
