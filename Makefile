@@ -1,9 +1,9 @@
 VERSION ?= dev
 COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE    := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-LDFLAGS := -X github.com/danmartell-ventures/apex-agent/pkg/version.Version=$(VERSION) \
-           -X github.com/danmartell-ventures/apex-agent/pkg/version.Commit=$(COMMIT) \
-           -X github.com/danmartell-ventures/apex-agent/pkg/version.Date=$(DATE)
+LDFLAGS := -X github.com/danmartell-ventures/apexagent/pkg/version.Version=$(VERSION) \
+           -X github.com/danmartell-ventures/apexagent/pkg/version.Commit=$(COMMIT) \
+           -X github.com/danmartell-ventures/apexagent/pkg/version.Date=$(DATE)
 
 .PHONY: build run clean test lint icons pkg
 

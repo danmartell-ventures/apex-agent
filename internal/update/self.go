@@ -13,8 +13,8 @@ import (
 
 	"github.com/creativeprojects/go-selfupdate"
 
-	"github.com/danmartell-ventures/apex-agent/internal/platform"
-	"github.com/danmartell-ventures/apex-agent/pkg/version"
+	"github.com/danmartell-ventures/apexagent/internal/platform"
+	"github.com/danmartell-ventures/apexagent/pkg/version"
 )
 
 const (

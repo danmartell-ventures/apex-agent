@@ -13,9 +13,9 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/danmartell-ventures/apex-agent/pkg/version.Version={{.Version}}
-      - -X github.com/danmartell-ventures/apex-agent/pkg/version.Commit={{.ShortCommit}}
-      - -X github.com/danmartell-ventures/apex-agent/pkg/version.Date={{.Date}}
+      - -X github.com/danmartell-ventures/apexagent/pkg/version.Version={{.Version}}
+      - -X github.com/danmartell-ventures/apexagent/pkg/version.Commit={{.ShortCommit}}
+      - -X github.com/danmartell-ventures/apexagent/pkg/version.Date={{.Date}}
 
 universal_binaries:
   - id: apex-agent

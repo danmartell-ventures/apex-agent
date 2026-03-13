@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/danmartell-ventures/apex-agent/internal/config"
+	"github.com/danmartell-ventures/apexagent/internal/config"
 )
 
 // State represents the tunnel connection state.

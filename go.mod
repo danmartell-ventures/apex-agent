@@ -1,4 +1,4 @@
-module github.com/danmartell-ventures/apex-agent
+module github.com/danmartell-ventures/apexagent
 
 go 1.26.1
 

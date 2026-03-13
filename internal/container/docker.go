@@ -171,12 +171,42 @@ func (d *Docker) run(ctx context.Context, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "docker", args...)
+	dockerPath := findDocker()
+	cmd := exec.CommandContext(ctx, dockerPath, args...)
+	cmd.Env = os.Environ()
 	if host := detectDockerHost(); host != "" {
-		cmd.Env = append(os.Environ(), "DOCKER_HOST="+host)
+		cmd.Env = append(cmd.Env, "DOCKER_HOST="+host)
+	}
+	// Auto-negotiate API version so minor client/engine skew doesn't break monitoring.
+	// Setting DOCKER_CLI_HINTS=false suppresses upgrade nags; the empty check
+	// avoids overriding an explicit user-set version.
+	if os.Getenv("DOCKER_API_VERSION") == "" {
+		cmd.Env = append(cmd.Env, "DOCKER_API_VERSION=1.44")
 	}
 	out, err := cmd.CombinedOutput()
-	return string(out), err
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", err, strings.TrimSpace(string(out)))
+	}
+	return string(out), nil
+}
+
+// findDocker returns the full path to the docker binary.
+// Under launchd the PATH is minimal, so we check common locations.
+func findDocker() string {
+	if p, err := exec.LookPath("docker"); err == nil {
+		return p
+	}
+	for _, p := range []string{
+		"/usr/local/bin/docker",
+		"/opt/homebrew/bin/docker",
+		"/Applications/Docker.app/Contents/Resources/bin/docker",
+		"/Applications/OrbStack.app/Contents/MacOS/xbin/docker",
+	} {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return "docker" // fall back, let it fail with a clear error
 }
 
 func parseMemory(s string) float64 {

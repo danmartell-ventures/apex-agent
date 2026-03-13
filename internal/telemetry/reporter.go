@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/danmartell-ventures/apex-agent/internal/config"
-	"github.com/danmartell-ventures/apex-agent/internal/container"
+	"github.com/danmartell-ventures/apexagent/internal/config"
+	"github.com/danmartell-ventures/apexagent/internal/container"
 )
 
 const reportInterval = 15 * time.Second

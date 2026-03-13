@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/danmartell-ventures/apex-agent/internal/backup"
-	"github.com/danmartell-ventures/apex-agent/internal/config"
-	"github.com/danmartell-ventures/apex-agent/internal/container"
-	"github.com/danmartell-ventures/apex-agent/internal/menubar"
-	"github.com/danmartell-ventures/apex-agent/internal/platform"
-	"github.com/danmartell-ventures/apex-agent/internal/telemetry"
-	"github.com/danmartell-ventures/apex-agent/internal/tunnel"
-	"github.com/danmartell-ventures/apex-agent/internal/update"
+	"github.com/danmartell-ventures/apexagent/internal/backup"
+	"github.com/danmartell-ventures/apexagent/internal/config"
+	"github.com/danmartell-ventures/apexagent/internal/container"
+	"github.com/danmartell-ventures/apexagent/internal/menubar"
+	"github.com/danmartell-ventures/apexagent/internal/platform"
+	"github.com/danmartell-ventures/apexagent/internal/telemetry"
+	"github.com/danmartell-ventures/apexagent/internal/tunnel"
+	"github.com/danmartell-ventures/apexagent/internal/update"
 )
 
 // Agent is the top-level orchestrator.
