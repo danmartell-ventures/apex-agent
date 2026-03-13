@@ -32,6 +32,7 @@ type Actions struct {
 	ApplyUpdate    func()
 	OpenDashboard  func()
 	ViewLogs       func()
+	Reregister     func()
 	Quit           func()
 }
 
@@ -78,6 +79,14 @@ func (a *App) onReady() {
 
 	mContainers := systray.AddMenuItem("Containers: checking...", "")
 	mContainers.Disable()
+
+	mReregister := systray.AddMenuItem("Re-register This Mac...", "Set up this Mac with a new token")
+	mReregister.Click(func() {
+		if a.actions.Reregister != nil {
+			a.actions.Reregister()
+		}
+	})
+	mReregister.Hide()
 
 	systray.AddSeparator()
 
@@ -137,18 +146,19 @@ func (a *App) onReady() {
 		defer ticker.Stop()
 
 		for range ticker.C {
-			a.updateMenu(mTunnel, mContainers, mUpdate)
+			a.updateMenu(mTunnel, mContainers, mUpdate, mReregister)
 		}
 	}()
 }
 
-func (a *App) updateMenu(mTunnel, mContainers, mUpdate *systray.MenuItem) {
+func (a *App) updateMenu(mTunnel, mContainers, mUpdate, mReregister *systray.MenuItem) {
 	// Check for fleet removal first
 	if a.status.IsRemoved() {
 		systray.SetIcon(iconGray)
 		systray.SetTooltip("Apex Agent — Removed from Fleet")
 		mTunnel.SetTitle("Removed from Fleet")
 		mContainers.SetTitle("This Mac was removed by an admin")
+		mReregister.Show()
 		return
 	}
 

@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"log/slog"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -82,6 +83,18 @@ func New(cfg *config.Config, log *slog.Logger, headless bool) *Agent {
 			ViewLogs: func() {
 				logPath := cfg.Agent.LogDir + "/agent.log"
 				exec.Command("open", "-a", "Console", logPath).Start()
+			},
+			Reregister: func() {
+				// Launch setup in a new process (it shows a native dialog),
+				// then restart the service to pick up the new config.
+				self, _ := os.Executable()
+				setupCmd := exec.Command(self, "setup")
+				if err := setupCmd.Start(); err != nil {
+					log.Error("failed to launch setup", "error", err)
+					return
+				}
+				setupCmd.Wait()
+				platform.RestartService()
 			},
 			Quit: func() { a.Stop() },
 		}, log)
