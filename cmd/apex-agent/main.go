@@ -92,17 +92,19 @@ func runCmd() *cobra.Command {
 
 func setupCmd() *cobra.Command {
 	var migrate bool
+	var serverURL string
 
 	cmd := &cobra.Command{
 		Use:   "setup <TOKEN>",
 		Short: "Bootstrap the agent with a setup token",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSetup(args[0], migrate)
+			return runSetup(args[0], serverURL, migrate)
 		},
 	}
 
 	cmd.Flags().BoolVar(&migrate, "migrate", false, "migrate from existing shell scripts")
+	cmd.Flags().StringVar(&serverURL, "server", "https://app.apex.host", "server URL for bootstrap")
 	return cmd
 }
 
@@ -368,13 +370,13 @@ type phoneHomeResponse struct {
 	ReportingToken  string `json:"reporting_token"`
 }
 
-func runSetup(token string, migrate bool) error {
+func runSetup(token string, serverURL string, migrate bool) error {
 	fmt.Println("Apex Agent Setup")
 	fmt.Println("=================")
 
 	// Step 1: Fetch bootstrap config
 	fmt.Print("Fetching configuration... ")
-	resp, err := fetchBootstrap(token)
+	resp, err := fetchBootstrap(serverURL, token)
 	if err != nil {
 		return fmt.Errorf("\nfailed: %w", err)
 	}
@@ -479,8 +481,8 @@ func runSetup(token string, migrate bool) error {
 	return nil
 }
 
-func fetchBootstrap(token string) (*bootstrapResponse, error) {
-	url := fmt.Sprintf("https://app.apex.host/api/docker-hosts/bootstrap/%s?format=json", token)
+func fetchBootstrap(serverURL, token string) (*bootstrapResponse, error) {
+	url := fmt.Sprintf("%s/api/docker-hosts/bootstrap/%s?format=json", serverURL, token)
 	httpResp, err := http.Get(url)
 	if err != nil {
 		return nil, err
