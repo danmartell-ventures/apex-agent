@@ -10,13 +10,43 @@ import (
 )
 
 // CheckSSH verifies that local SSH is accessible on port 22.
-func CheckSSH() error {
+func CheckSSH() bool {
 	conn, err := net.DialTimeout("tcp", "127.0.0.1:22", 3*time.Second)
 	if err != nil {
-		return fmt.Errorf("SSH not accessible on port 22: %w\nEnable Remote Login in System Settings > General > Sharing", err)
+		return false
 	}
 	conn.Close()
-	return nil
+	return true
+}
+
+// EnableSSH tries to enable Remote Login programmatically (requires sudo).
+// Returns true if SSH becomes available.
+func EnableSSH() bool {
+	// Try systemsetup (works on most macOS versions)
+	cmd := exec.Command("sudo", "systemsetup", "-setremotelogin", "on")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err == nil {
+		time.Sleep(time.Second)
+		if CheckSSH() {
+			return true
+		}
+	}
+
+	// Fallback: launchctl
+	cmd = exec.Command("sudo", "launchctl", "load", "-w", "/System/Library/LaunchDaemons/ssh.plist")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err == nil {
+		time.Sleep(time.Second)
+		if CheckSSH() {
+			return true
+		}
+	}
+
+	return false
 }
 
 // InstallAuthorizedKey adds a public key to ~/.ssh/authorized_keys.
