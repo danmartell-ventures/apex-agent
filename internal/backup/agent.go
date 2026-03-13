@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danmartell-ventures/apex-agent/internal/config"
+	"github.com/danmartell-ventures/apexagent/internal/config"
 )
 
 // Agent handles nightly backups.

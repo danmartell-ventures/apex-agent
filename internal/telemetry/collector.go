@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danmartell-ventures/apex-agent/internal/container"
-	"github.com/danmartell-ventures/apex-agent/pkg/version"
+	"github.com/danmartell-ventures/apexagent/internal/container"
+	"github.com/danmartell-ventures/apexagent/pkg/version"
 )
 
 // HostInfo matches the shell script's "host" object.
