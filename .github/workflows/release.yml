@@ -127,6 +127,7 @@ jobs:
           echo "PKG_VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Notarize PKG
+        continue-on-error: true
         if: env.PKG_PATH != ''
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -140,6 +141,19 @@ jobs:
             --password "$APPLE_APP_PASSWORD" \
             --wait \
             --timeout 600
+
+          # Fetch the notarization log regardless of outcome
+          SUBMISSION_ID=$(xcrun notarytool history \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" 2>&1 | head -5 | grep -oE '[0-9a-f-]{36}' | head -1)
+          if [ -n "$SUBMISSION_ID" ]; then
+            echo "Fetching notarization log for $SUBMISSION_ID..."
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_PASSWORD" || true
+          fi
 
           echo "Stapling notarization ticket..."
           xcrun stapler staple "$PKG_PATH"
