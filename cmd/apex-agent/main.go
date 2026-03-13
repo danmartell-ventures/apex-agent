@@ -385,10 +385,23 @@ func runSetup(token string, serverURL string, migrate bool) error {
 	// Step 2: Check SSH
 	fmt.Print("Checking SSH access... ")
 	if err := platform.CheckSSH(); err != nil {
-		fmt.Printf("\nWARNING: %v\n", err)
-		fmt.Println("Please enable Remote Login in System Settings > General > Sharing")
-		fmt.Println("Then re-run setup.")
-		return err
+		fmt.Println()
+		fmt.Println()
+		fmt.Println("  ┌─────────────────────────────────────────────────────────────┐")
+		fmt.Println("  │                                                             │")
+		fmt.Println("  │  SSH (Remote Login) is not enabled on this Mac.             │")
+		fmt.Println("  │                                                             │")
+		fmt.Println("  │  Open System Settings → General → Sharing → Remote Login    │")
+		fmt.Println("  │  and toggle it ON.                                          │")
+		fmt.Println("  │                                                             │")
+		fmt.Println("  │  Press Enter here once it's enabled...                      │")
+		fmt.Println("  │                                                             │")
+		fmt.Println("  └─────────────────────────────────────────────────────────────┘")
+		fmt.Println()
+		fmt.Scanln()
+		if err := platform.CheckSSH(); err != nil {
+			return fmt.Errorf("SSH is still not available — please enable Remote Login and try again")
+		}
 	}
 	fmt.Println("OK")
 
