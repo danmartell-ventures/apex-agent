@@ -77,7 +77,7 @@ jobs:
           echo "Signing binary: $BINARY"
           codesign --force --timestamp --options runtime \
             --entitlements packaging/entitlements.plist \
-            --sign "Developer ID Application: Daniel Martell ($APPLE_TEAM_ID)" \
+            --sign "Developer ID Application: everydev, LLC ($APPLE_TEAM_ID)" \
             "$BINARY"
 
           codesign --verify --deep --strict "$BINARY"
@@ -117,7 +117,7 @@ jobs:
 
           # Sign the package
           productsign \
-            --sign "Developer ID Installer: Daniel Martell ($APPLE_TEAM_ID)" \
+            --sign "Developer ID Installer: everydev, LLC ($APPLE_TEAM_ID)" \
             --timestamp \
             unsigned.pkg \
             "apex-agent.pkg"
