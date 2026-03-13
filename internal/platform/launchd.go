@@ -56,6 +56,19 @@ func plistPath() string {
 	return filepath.Join(home, "Library", "LaunchAgents", ServiceLabel+".plist")
 }
 
+// prettyBinaryLink creates a "Apex Agent" symlink so macOS Login Items
+// shows a nice name instead of "apex-agent".
+func prettyBinaryLink(binaryPath string) string {
+	home, _ := os.UserHomeDir()
+	link := filepath.Join(home, ".apex", "Apex Agent")
+	// Remove stale symlink if it exists
+	os.Remove(link)
+	if err := os.Symlink(binaryPath, link); err != nil {
+		return binaryPath // fall back to original
+	}
+	return link
+}
+
 // InstallService installs and loads the launchd plist.
 func InstallService(binaryPath, logDir string) error {
 	if err := os.MkdirAll(logDir, 0755); err != nil {
@@ -64,7 +77,7 @@ func InstallService(binaryPath, logDir string) error {
 
 	data := plistData{
 		Label:      ServiceLabel,
-		BinaryPath: binaryPath,
+		BinaryPath: prettyBinaryLink(binaryPath),
 		LogDir:     logDir,
 	}
 
