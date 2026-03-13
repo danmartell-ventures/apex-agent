@@ -1,0 +1,57 @@
+version: 2
+
+builds:
+  - id: apex-agent
+    main: ./cmd/apex-agent
+    binary: apex-agent
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/danmartell-ventures/apex-agent/pkg/version.Version={{.Version}}
+      - -X github.com/danmartell-ventures/apex-agent/pkg/version.Commit={{.ShortCommit}}
+      - -X github.com/danmartell-ventures/apex-agent/pkg/version.Date={{.Date}}
+
+universal_binaries:
+  - id: apex-agent
+    replace: true
+    name_template: apex-agent
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "apex-agent_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - none*  # Binary only
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  github:
+    owner: danmartell-ventures
+    name: apex-agent
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+brews:
+  - name: apex-agent
+    repository:
+      owner: danmartell-ventures
+      name: homebrew-tap
+    homepage: https://apex.host
+    description: "Apex Agent — unified daemon for BYOH Mac hosts"
+    license: MIT
+    install: |
+      bin.install "apex-agent"
+    service: |
+      run [opt_bin/"apex-agent", "run"]
+      keep_alive true
+      log_path var/"log/apex-agent.log"
+      error_log_path var/"log/apex-agent-error.log"
