@@ -54,7 +54,7 @@ func (r *Reporter) Run(ctx context.Context) error {
 
 func (r *Reporter) report(ctx context.Context) {
 	containers := r.monitor.Containers()
-	payload := Collect(ctx, r.cfg.HostID, r.cfg.ReportingToken, containers)
+	payload := Collect(ctx, r.cfg.ReportingToken, containers)
 
 	data, err := json.Marshal(payload)
 	if err != nil {
